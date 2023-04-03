@@ -88,6 +88,10 @@ func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (settings.
 		auther = &auth.NoAuth{}
 	}
 
+	if method == auth.MethodCookieAuth {
+		auther = &auth.CookieAuth{}
+	}
+
 	if method == auth.MethodJSONAuth {
 		jsonAuth := &auth.JSONAuth{}
 		host := mustGetString(flags, "recaptcha.host")

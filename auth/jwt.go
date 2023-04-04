@@ -5,6 +5,7 @@ import (
 	"os"
 
 	gost "github.com/bldsoft/gost/auth/jwt"
+	"github.com/filebrowser/filebrowser/v2/errors"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/users"
 	"github.com/go-chi/jwtauth"
@@ -57,7 +58,7 @@ func (a JWTAuth) getToken(r *http.Request) (string, error) {
 
 	cookie, err := r.Cookie("x-auth")
 	if err != nil || cookie.Value == "" {
-		return "", os.ErrPermission
+		return "", errors.ErrEmptyKey
 	}
 
 	return cookie.Value, nil

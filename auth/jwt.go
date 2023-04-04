@@ -37,7 +37,7 @@ func (a JWTAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings, 
 		return nil, err
 	}
 
-	u, err := usr.Get(srv.Root, claims["username"])
+	u, err := usr.Get(srv.Root, claims["email"])
 	if err != nil {
 		return nil, os.ErrPermission
 	}

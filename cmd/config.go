@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/bldsoft/gost/auth/jwt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -36,6 +37,8 @@ func addConfigFlags(flags *pflag.FlagSet) {
 	flags.String("auth.method", string(auth.MethodJSONAuth), "authentication type")
 	flags.String("auth.header", "", "HTTP header for auth.method=proxy")
 	flags.String("auth.command", "", "command for auth.method=hook")
+	flags.String("auth.jwt.alg", "", "algorithm to use for JWT decoding")
+	flags.String("auth.jwt.pem", "", "path to PEM encoded ASN.1 DER format key")
 
 	flags.String("recaptcha.host", "https://www.google.com", "use another host for ReCAPTCHA. recaptcha.net might be useful in China")
 	flags.String("recaptcha.key", "", "ReCaptcha site key")
@@ -88,8 +91,22 @@ func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (settings.
 		auther = &auth.NoAuth{}
 	}
 
-	if method == auth.MethodCookieAuth {
-		auther = &auth.CookieAuth{}
+	if method == auth.MethodJWTAuth {
+		alg := mustGetString(flags, "auth.jwt.alg")
+		pemPath := mustGetString(flags, "auth.jwt.pem")
+
+		if alg == "" || pemPath == "" {
+			checkErr(nerrors.New("you must set the boths flags 'auth.jwt.alg' and 'auth.jwt.pem' for method 'jwt'"))
+		}
+
+		jwtAuther := auth.JWTAuth{
+			JwtConfig: &jwt.JwtConfig{
+				Alg:     alg,
+				PemPath: pemPath,
+			},
+		}
+
+		auther = jwtAuther
 	}
 
 	if method == auth.MethodJSONAuth {

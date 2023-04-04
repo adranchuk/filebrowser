@@ -24,8 +24,8 @@ func (s authBackend) Get(t settings.AuthMethod) (auth.Auther, error) {
 		auther = &auth.HookAuth{}
 	case auth.MethodNoAuth:
 		auther = &auth.NoAuth{}
-	case auth.MethodCookieAuth:
-		auther = &auth.CookieAuth{}
+	case auth.MethodJWTAuth:
+		auther = &auth.JWTAuth{}
 	default:
 		return nil, errors.ErrInvalidAuthMethod
 	}

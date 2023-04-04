@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -41,7 +42,6 @@ func (a JSONAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings,
 	// If ReCaptcha is enabled, check the code.
 	if a.ReCaptcha != nil && len(a.ReCaptcha.Secret) > 0 {
 		ok, err := a.ReCaptcha.Ok(cred.ReCaptcha) //nolint:govet
-
 		if err != nil {
 			return nil, err
 		}
@@ -51,6 +51,7 @@ func (a JSONAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings,
 		}
 	}
 
+	fmt.Printf("JSON AUTH CREDS: %v %T", cred.Username, cred.Username)
 	u, err := usr.Get(srv.Root, cred.Username)
 	if err != nil || !users.CheckPwd(cred.Password, u.Password) {
 		return nil, os.ErrPermission

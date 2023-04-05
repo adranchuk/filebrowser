@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -51,7 +50,6 @@ func (a JSONAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings,
 		}
 	}
 
-	fmt.Printf("JSON AUTH CREDS: %v %T", cred.Username, cred.Username)
 	u, err := usr.Get(srv.Root, cred.Username)
 	if err != nil || !users.CheckPwd(cred.Password, u.Password) {
 		return nil, os.ErrPermission

@@ -13,11 +13,6 @@ import (
 
 const MethodJWTAuth settings.AuthMethod = "jwt"
 
-const (
-	roleAdmin      = "admin"
-	roleSuperAdmin = "superadmin"
-)
-
 type JWTAuth struct {
 	*gost.JwtConfig
 }
@@ -43,32 +38,14 @@ func (a JWTAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings, 
 		return nil, err
 	}
 
-	fmt.Println(claims)
-	if claims["email"] == nil || claims["path"] == nil {
+	if claims["username"] == nil {
 		return nil, errors.ErrInvalidRequestParams
 	}
 
-	perms := users.Permissions{
-		Download: true,
-		Execute:  true,
+	u, err := usr.Get(srv.Root, claims["username"].(string))
+	if err != nil {
+		return nil, err
 	}
-	if role := claims["role"]; role != nil {
-		if role.(string) == roleAdmin || role.(string) == roleSuperAdmin {
-			perms.Admin = true
-		}
-	}
-
-	u := &users.User{
-		ID:       1,
-		Username: claims["email"].(string),
-		Scope:    claims["path"].(string),
-		Perm:     perms,
-	}
-
-	// u, err = usr.Get(srv.Root, "admin")
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	return u, nil
 }

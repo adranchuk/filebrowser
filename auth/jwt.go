@@ -1,8 +1,8 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
-	"os"
 
 	gost "github.com/bldsoft/gost/auth/jwt"
 	"github.com/filebrowser/filebrowser/v2/errors"
@@ -12,6 +12,11 @@ import (
 )
 
 const MethodJWTAuth settings.AuthMethod = "jwt"
+
+const (
+	roleAdmin      = "admin"
+	roleSuperAdmin = "superadmin"
+)
 
 type JWTAuth struct {
 	*gost.JwtConfig
@@ -38,10 +43,32 @@ func (a JWTAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings, 
 		return nil, err
 	}
 
-	u, err := usr.Get(srv.Root, claims["email"])
-	if err != nil {
-		return nil, os.ErrPermission
+	fmt.Println(claims)
+	if claims["email"] == nil || claims["path"] == nil {
+		return nil, errors.ErrInvalidRequestParams
 	}
+
+	perms := users.Permissions{
+		Download: true,
+		Execute:  true,
+	}
+	if role := claims["role"]; role != nil {
+		if role.(string) == roleAdmin || role.(string) == roleSuperAdmin {
+			perms.Admin = true
+		}
+	}
+
+	u := &users.User{
+		ID:       1,
+		Username: claims["email"].(string),
+		Scope:    claims["path"].(string),
+		Perm:     perms,
+	}
+
+	// u, err = usr.Get(srv.Root, "admin")
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return u, nil
 }
@@ -58,7 +85,7 @@ func (a JWTAuth) getToken(r *http.Request) (string, error) {
 
 	cookie, err := r.Cookie("x-auth")
 	if err != nil || cookie.Value == "" {
-		return "", errors.ErrEmptyKey
+		return "", fmt.Errorf("%w %v", errors.ErrEmptyKey, err)
 	}
 
 	return cookie.Value, nil

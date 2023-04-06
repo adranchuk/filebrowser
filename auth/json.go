@@ -41,7 +41,6 @@ func (a JSONAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings,
 	// If ReCaptcha is enabled, check the code.
 	if a.ReCaptcha != nil && len(a.ReCaptcha.Secret) > 0 {
 		ok, err := a.ReCaptcha.Ok(cred.ReCaptcha) //nolint:govet
-
 		if err != nil {
 			return nil, err
 		}

@@ -18,35 +18,43 @@ type JWTAuth struct {
 }
 
 func (a JWTAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings, srv *settings.Server) (*users.User, error) {
+	fmt.Println("auth jwt")
 	if err := a.Validate(); err != nil {
+		fmt.Println("validate err: ", err)
 		return nil, err
 	}
 
 	rawTkn, err := a.getToken(r)
 	if err != nil {
+		fmt.Println("failed to get token: ", err)
 		return nil, err
 	}
 
 	ja := jwtauth.New(a.Alg, a.PublicKey(), nil)
 	token, err := jwtauth.VerifyToken(ja, rawTkn)
 	if err != nil {
+		fmt.Println("failed to verify token: ", err)
 		return nil, err
 	}
 
 	claims, err := token.AsMap(r.Context())
 	if err != nil {
+		fmt.Println("failed to get token as map: ", err)
 		return nil, err
 	}
 
 	if claims["username"] == nil {
+		fmt.Println("empty username: ", err)
 		return nil, errors.ErrInvalidRequestParams
 	}
 
 	u, err := usr.Get(srv.Root, claims["username"].(string))
 	if err != nil {
+		fmt.Println("failed to get user from claims: ", err)
 		return nil, err
 	}
 
+	fmt.Printf("jwt auth: %+v; claims: %v\n", u, claims)
 	return u, nil
 }
 

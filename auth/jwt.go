@@ -74,7 +74,7 @@ func (a JWTAuth) getToken(r *http.Request) (string, error) {
 	}
 
 	cookie, err = r.Cookie("auth")
-	if err != nil || cookie.Value == "" {
+	if err == nil && cookie.Value != "" {
 		return cookie.Value, nil
 	}
 

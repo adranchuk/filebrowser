@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	gost "github.com/bldsoft/gost/auth/jwt"
 	"github.com/filebrowser/filebrowser/v2/errors"
@@ -68,18 +69,29 @@ func (a JWTAuth) getToken(r *http.Request) (string, error) {
 		return token, nil
 	}
 
+	if refererer := r.Header.Get("Referer"); refererer != "" {
+		u, _ := url.Parse(refererer)
+		fmt.Println("referer")
+		return u.Query().Get("token"), nil
+	}
+
+	fmt.Println(r.URL)
+
+	if token = r.URL.Query().Get("token"); token != "" {
+		fmt.Println("url")
+		return token, nil
+	}
+
 	cookie, err := r.Cookie("x-auth")
 	if err == nil && cookie.Value != "" {
+		fmt.Println("x-auth")
 		return cookie.Value, nil
 	}
 
 	cookie, err = r.Cookie("auth")
 	if err == nil && cookie.Value != "" {
+		fmt.Println("auth")
 		return cookie.Value, nil
-	}
-
-	if token = r.URL.Query().Get("token"); token != "" {
-		return token, nil
 	}
 
 	return "", errors.ErrEmptyKey

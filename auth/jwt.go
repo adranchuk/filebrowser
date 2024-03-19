@@ -82,5 +82,5 @@ func (a JWTAuth) getToken(r *http.Request) (string, error) {
 		return token, nil
 	}
 
-	return cookie.Value, errors.ErrEmptyKey
+	return "", errors.ErrEmptyKey
 }

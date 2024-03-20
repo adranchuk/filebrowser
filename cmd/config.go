@@ -109,6 +109,20 @@ func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (settings.
 		auther = jwtAuther
 	}
 
+	if method == auth.MethodSession {
+		alg := mustGetString(flags, "auth.jwt.alg")
+		pemPath := mustGetString(flags, "auth.jwt.pem")
+		connectionString := mustGetString(flags, "auth.session.connectionString")
+		dbName := mustGetString(flags, "auth.session.dbname")
+
+		if alg == "" || pemPath == "" || dbName == "" || connectionString == "" {
+			checkErr(nerrors.New(
+				"one of the required flags (auth.jwt.alg, auth.jwt.pem, auth.session.connectionString, auth.session.dbname) are not provided for auth method 'session'",
+			))
+		}
+
+	}
+
 	if method == auth.MethodJSONAuth {
 		jsonAuth := &auth.JSONAuth{}
 		host := mustGetString(flags, "recaptcha.host")

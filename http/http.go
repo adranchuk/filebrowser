@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"net/http"
 
+	"github.com/go-chi/cors"
 	"github.com/gorilla/mux"
 
 	"github.com/filebrowser/filebrowser/v2/settings"
@@ -30,7 +31,7 @@ func NewHandler(
 			w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
 			next.ServeHTTP(w, r)
 		})
-	})
+	}, allowCorsHandler())
 	index, static := getStaticHandlers(store, server, assetsFs)
 
 	// NOTE: This fixes the issue where it would redirect if people did not put a
@@ -86,4 +87,18 @@ func NewHandler(
 	public.PathPrefix("/share").Handler(monkey(publicShareHandler, "/api/public/share/")).Methods("GET")
 
 	return stripPrefix(server.BaseURL, r), nil
+}
+
+func allowCorsHandler() func(http.Handler) http.Handler {
+	cors := cors.New(cors.Options{
+		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+	return cors.Handler
 }

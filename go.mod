@@ -8,6 +8,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/dsoprea/go-exif/v3 v3.0.0-20201216222538-db167117f483
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568
+	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/gorilla/mux v1.8.0

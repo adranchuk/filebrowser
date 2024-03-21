@@ -9,6 +9,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/bldsoft/gost/auth/jwt"
+	"github.com/bldsoft/gost/config"
+	"github.com/bldsoft/gost/mongo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -39,6 +41,8 @@ func addConfigFlags(flags *pflag.FlagSet) {
 	flags.String("auth.command", "", "command for auth.method=hook")
 	flags.String("auth.jwt.alg", "", "algorithm to use for JWT decoding")
 	flags.String("auth.jwt.pem", "", "path to PEM encoded ASN.1 DER format key")
+	flags.String("auth.session.server", "", "connection string to the mongo server")
+	flags.String("auth.session.dbname", "", "mongo database name")
 
 	flags.String("recaptcha.host", "https://www.google.com", "use another host for ReCAPTCHA. recaptcha.net might be useful in China")
 	flags.String("recaptcha.key", "", "ReCaptcha site key")
@@ -112,15 +116,25 @@ func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (settings.
 	if method == auth.MethodSession {
 		alg := mustGetString(flags, "auth.jwt.alg")
 		pemPath := mustGetString(flags, "auth.jwt.pem")
-		connectionString := mustGetString(flags, "auth.session.connectionString")
+		server := mustGetString(flags, "auth.session.server")
 		dbName := mustGetString(flags, "auth.session.dbname")
 
-		if alg == "" || pemPath == "" || dbName == "" || connectionString == "" {
+		if alg == "" || pemPath == "" || dbName == "" || server == "" {
 			checkErr(nerrors.New(
-				"one of the required flags (auth.jwt.alg, auth.jwt.pem, auth.session.connectionString, auth.session.dbname) are not provided for auth method 'session'",
+				"one or more of the required flags (auth.jwt.alg, auth.jwt.pem, auth.session.server, or auth.session.dbname) are not provided for the auth method 'session'",
 			))
 		}
 
+		auther = auth.SessionAuth{
+			JwtConfig: &jwt.JwtConfig{
+				Alg:     alg,
+				PemPath: pemPath,
+			},
+			Config: mongo.Config{
+				Server: config.ConnectionString(server),
+				DbName: dbName,
+			},
+		}
 	}
 
 	if method == auth.MethodJSONAuth {
